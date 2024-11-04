@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Margerita Puzzle</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+	<style>
+		body {
+			font-family: "Poppins", sans-serif;
+			height: 100vh;
+			margin: 0;
+			background-color: #f0f0f0;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+		}
+		h1 {
+			font-size: 2.5rem;
+			margin-top: 1rem;
+			font-weight: 400;
+			margin-bottom: 2rem;
+			color: #333;
+			text-align: center;
+		}
+		#puzzle-container {
+			margin: auto;
+			display: flex;
+			width: 400px;
+			height: 400px;
+			position: relative;
+			border: 2px solid #333;
+			box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
+		}
+		.puzzle-piece {
+			width: 100px;
+			height: 100px;
+			position: absolute;
+			background-size: 400px 400px;
+			cursor: move;
+			border: 1px solid #333;
+			box-sizing: border-box;
+		}
+		.puzzle-piece:hover {
+			opacity: 0.8;
+		}
+		.footer-text {
+			margin-top: 30px;
+			font-size: 1.4rem;
+			text-align: center;
+			font-weight: 600;
+			color: #555;
+			animation: fadeIn 2s ease-in-out infinite alternate;
+			line-height: 1.5;
+		}
+		.footer-text span {
+			display: block;
+		}
+		.footer-text .line1 {
+			color: #FF5733; /* Vibrant orange */
+		}
+		.footer-text .line2 {
+			color: #337AFF; /* Bright blue */
+		}
+		@keyframes fadeIn {
+			from {
+				opacity: 0.5;
+			}
+			to {
+				opacity: 1;
+			}
+		}
+	</style>
+</head>
+<body>
+	<h1> Margherita Puzzle</h1>
+	<div id="puzzle-container">
+		<!-- Puzzle pieces will be dynamically added here -->
+	</div>
+	<div class="footer-text">
+		<span class="line1">parto, o non parto, parto o non parto</span>
+		<span class="line2">refresh e si parto con SCILLA CARIDDI RENTAL BOAT !!!</span>
+	</div>
+
+	<script>
+		document.addEventListener("DOMContentLoaded", () => {
+			const puzzleContainer = document.getElementById("puzzle-container");
+			const totalPieces = 16;
+			const rows = 4;
+			const cols = 4;
+			const imageSrc = "https://iili.io/dFDXEKv.jpg"; // Ensure the image is 400x400 pixels
+
+			let pieces = [];
+			let loadCount = localStorage.getItem('puzzleLoadCount') || 0;
+			loadCount = parseInt(loadCount) + 1;
+			localStorage.setItem('puzzleLoadCount', loadCount);
+
+			// Check if on mobile and load count is 4 or more
+			const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+			const showCompletedPuzzle = isMobile && loadCount >= 4;
+
+			for (let i = 0; i < totalPieces; i++) {
+				const piece = document.createElement("div");
+				piece.classList.add("puzzle-piece");
+				piece.style.backgroundImage = `url(${imageSrc})`;
+				piece.style.backgroundPosition = `${-(i % cols) * 100}px ${-Math.floor(i / cols) * 100}px`;
+				piece.dataset.index = i;
+				piece.draggable = true;
+				pieces.push(piece);
+			}
+
+			// Shuffle or arrange pieces based on conditions
+			if (!showCompletedPuzzle) {
+				// Shuffle pieces randomly if not displaying completed puzzle
+				pieces = pieces.sort(() => Math.random() - 0.5);
+			}
+
+			// Add pieces to the container in either shuffled or ordered state
+			pieces.forEach((piece, index) => {
+				piece.style.top = `${Math.floor(index / cols) * 100}px`;
+				piece.style.left = `${(index % cols) * 100}px`;
+				puzzleContainer.appendChild(piece);
+
+				if (!showCompletedPuzzle) {
+					// Enable drag-and-drop if showing the shuffled puzzle
+					piece.addEventListener("dragstart", (e) => {
+						e.dataTransfer.setData("text/plain", piece.dataset.index);
+					});
+
+					piece.addEventListener("dragover", (e) => {
+						e.preventDefault();
+					});
+
+					piece.addEventListener("drop", (e) => {
+						e.preventDefault();
+						const draggedPieceIndex = e.dataTransfer.getData("text/plain");
+						const targetPieceIndex = piece.dataset.index;
+
+						if (draggedPieceIndex !== targetPieceIndex) {
+							const draggedPiece = document.querySelector(`.puzzle-piece[data-index='${draggedPieceIndex}']`);
+							const tempTop = piece.style.top;
+							const tempLeft = piece.style.left;
+
+							piece.style.top = draggedPiece.style.top;
+							piece.style.left = draggedPiece.style.left;
+
+							draggedPiece.style.top = tempTop;
+							draggedPiece.style.left = tempLeft;
+
+							// Update the dataset index
+							piece.dataset.index = draggedPieceIndex;
+							draggedPiece.dataset.index = targetPieceIndex;
+						}
+					});
+				}
+			});
+		});
+	</script>
+</body>
+</html>
